@@ -274,7 +274,7 @@ static inline dispatch_time_t dispatch_walltime_date(NSDate *date) {
     dispatch_time_t milestone;
     
     interval = [date timeIntervalSince1970];
-    subsecond = modf(interval, &second);
+    subsecond = modf(interval, &second);// 分解函数 ： 分解x，以得到x的整数和小数部分 ，返回值为小数部分
     time.tv_sec = second;
     time.tv_nsec = subsecond * NSEC_PER_SEC;
     milestone = dispatch_walltime(&time, 0);
@@ -311,8 +311,10 @@ static inline void dispatch_sync_on_main_queue(void (^block)()) {
 }
 
 /**
- Initialize a pthread mutex.
+ Initialize a pthread mutex. // 创建互斥锁
  */
+//PTHREAD_MUTEX_RECURSIVE
+//如果一个线程对这种类型的互斥锁重复上锁，不会引起死锁，一个线程对这类互斥锁的多次重复上锁必须由这个线程来重复相同数量的解锁，这样才能解开这个互斥锁，别的线程才能得到这个互斥锁。如果试图解锁一个由别的线程锁定的互斥锁将会返回一个错误代码。如果一个线程试图解锁已经被解锁的互斥锁也将会返回一个错误代码。这种类型的互斥锁只能是进程私有的
 static inline void pthread_mutex_init_recursive(pthread_mutex_t *mutex, bool recursive) {
 #define YYMUTEX_ASSERT_ON_ERROR(x_) do { \
 __unused volatile int res = (x_); \

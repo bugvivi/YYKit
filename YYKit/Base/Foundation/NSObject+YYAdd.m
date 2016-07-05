@@ -75,6 +75,7 @@ va_end(args);
     if (length == 0) return nil;
     
     char *type = (char *)[sig methodReturnType];
+    // 去除一些类型的修饰
     while (*type == 'r' || // const
            *type == 'n' || // in
            *type == 'N' || // inout
@@ -138,8 +139,10 @@ return @(ret); \
 #undef return_with_number
 }
 
+// 给inv传递参数 sig存放的是sel的参数类型 args存放的是参数的值
 + (void)setInv:(NSInvocation *)inv withSig:(NSMethodSignature *)sig andArgs:(va_list)args {
     NSUInteger count = [sig numberOfArguments];
+//    There are always at least two arguments, because an NSMethodSignature object includes the hidden arguments self and _cmd, which are the first two arguments passed to every method implementation. 所以参数index从2开始
     for (int index = 2; index < count; index++) {
         char *type = (char *)[sig getArgumentTypeAtIndex:index];
         while (*type == 'r' || // const
@@ -276,6 +279,7 @@ return @(ret); \
             NSUInteger size = 0;
             NSGetSizeAndAlignment(type, &size, NULL);
             
+// 如果类型为 不常见系统结构体 数组 联合体 或者其他数据结构等 就动态创建一个结构体让他支持256byte以下的结构,超过256byte的结构不支持
 #define case_size(_size_) \
 else if (size <= 4 * _size_ ) { \
     struct dummy { char tmp[4 * _size_]; }; \
@@ -370,7 +374,7 @@ else if (size <= 4 * _size_ ) { \
 - (NSString *)className {
     return [NSString stringWithUTF8String:class_getName([self class])];
 }
-
+// 利用归档来实现深拷贝
 - (id)deepCopy {
     id obj = nil;
     @try {
